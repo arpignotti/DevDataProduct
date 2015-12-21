@@ -1,11 +1,24 @@
+library(shiny)
+library(RCurl)
+library(maps)
+library(mapproj)
+source("helper/helpers.R")
+
+x <- getURL("https://raw.githubusercontent.com/arpignotti/DevDataProduct/master/Data/dset.csv")
+dset <- read.csv(text = x)
+
 function(input, output) {
   output$map <- renderPlot({
     data <- switch(input$var, 
                    "UnitedHealth" = "UnitedHealth Group, Inc.",
                    "Aetna" = "Aetna Inc.",
                    "Kaiser" = "Kaiser Foundation Health Plan, Inc.",
-                   "Anthem" = "Anthem Inc.")
-    
+                   "Anthem" = "Anthem Inc.",
+                   'Humana'  = 'Humana Inc.',
+                   'CIGNA'  = 'CIGNA',
+                   'WellCare'  = 'WellCare Health Plans, Inc.',
+                   'Health Net'  = 'Health Net, Inc.',
+                   'Highmark'  = 'Highmark Health')
     zoom <- switch(input$zoom, 
                    "National" = c('wisconsin','indiana','ohio','michigan','illinois','missouri','iowa',
                                   'minnesota','north dakota','south dakota','nebraska','kansas','maine','vermont','new hampshire',
@@ -21,11 +34,7 @@ function(input, output) {
                    "Southwest" = c('texas','oklahoma','new mexico','arizona'),
                    "West" = c('colorado','utah','wyoming','nevada','montana','idaho','washington','oregon','california'))
     
-    sub <- county_choropleth(dset[dset$Parent_Organization == data, ],
-                             title       = "Market Shares",
-                             legend      = "Percent of MA Population",
-                             num_colors  = 1,
-                             state_zoom = zoom)
-    sub + scale_fill_continuous(low="#eff3ff", high="#084594", na.value="white")
+    sub <- dset[dset$Parent_Organization == data, ]
+    percent_map(sub$value, "darkgreen", "Market Share", regions = zoom)
   })
 }
